@@ -46,11 +46,13 @@ Agent: see `agent/README.md`; enrollment tokens from *Agent management* (tenant 
 
 | Command | Result |
 |---|---|
-| `scripts/test.sh` (with `AEGIS_TEST_ADMIN_URL`) | ALL GATES PASSED: 58 backend tests, 19 Go tests (`-race`), dashboard build, `npm audit` 0, secret scan 0 |
+| `scripts/test.sh` (with `AEGIS_TEST_ADMIN_URL`) | ALL GATES PASSED: 61 backend tests (incl. automatic sweep of all 54 API operations), 19 Go tests (`-race`), dashboard build, `npm audit` 0, secret scan 0 |
 | `python -m aegis.cli ai-eval` | 26 cases: 23 pass, 3 known deviations (2 FP, 1 FN), 0 unexpected |
 | `python scripts/benchmark.py --rate 100 --seconds 180` | see `docs/evaluation/benchmark.md` |
 | `pip-audit` on a clean runtime venv | no known vulnerabilities |
 | Browser walk-through (headless Chrome, Playwright) | all pages load with real data; no page errors |
+| `scripts/acceptance.py` (Section 20.3 flow, incl. worker restart) | 9/9 PASS — `docs/handoff/acceptance-2026-11-22.md` |
+| Container-layout emulation (read-only tree, non-root, concurrent migrate) | full flow passed; image build itself not run |
 
 ## Coverage gaps (not verified here, and why)
 

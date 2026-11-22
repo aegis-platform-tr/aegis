@@ -27,7 +27,7 @@ below points to a test, an evaluation document or a manual verification record.
 |---|---|
 | ruff + `mypy --strict` (backend) | pass |
 | Contract drift check | pass |
-| Backend tests on PostgreSQL 16 (unit, API, DB, tenant, concurrency, migrations incl. concurrent startup and upgrade from 0001, backup/restore, DB outage, agent binary E2E, AI eval, response failures) | **58 passed** |
+| Backend tests on PostgreSQL 16 (unit, API, DB, tenant, concurrency, migrations incl. concurrent startup and upgrade from 0001, backup/restore, DB outage, agent binary E2E, AI eval, response failures) | **61 passed** (incl. auth + tenant sweep of all 54 API operations) |
 | Go `vet` + `test -race` (agent) | pass (19 tests) |
 | Dashboard `tsc` + production build | pass |
 | `npm audit` (dashboard) | 0 vulnerabilities |

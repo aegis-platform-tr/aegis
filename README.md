@@ -85,8 +85,9 @@ See [`agent/README.md`](agent/README.md) for permissions and failure behavior.
 
 ```bash
 export AEGIS_TEST_ADMIN_URL=postgresql+psycopg://postgres:<pw>@127.0.0.1:5432/postgres
-scripts/test.sh            # ruff, mypy --strict, contract, 58 PostgreSQL tests, Go -race, UI build, audits, secret scan
+scripts/test.sh            # ruff, mypy --strict, contract, 61 PostgreSQL tests, Go -race, UI build, audits, secret scan
 ```
+Section 20.3 acceptance flow against a running stack: `python scripts/acceptance.py`.
 Release gates and evidence: [`docs/release/RELEASE_NOTES.md`](docs/release/RELEASE_NOTES.md).
 
 ## Repository layout
