@@ -1,0 +1,318 @@
+{
+  "fixture_pack": "auth-bruteforce-demo",
+  "version": "1",
+  "origin": "synthetic",
+  "description": "Synthetic SSH brute-force burst from a documentation address (192.0.2.42) followed by a success, plus below-threshold benign failures and one DNS event with collector-only time. All identifiers and addresses are fictional (RFC 5737).",
+  "expected": {
+    "alerts": [
+      {
+        "rule_id": "auth.bruteforce.source_asset",
+        "group_key": {
+          "source_ip": "192.0.2.42",
+          "asset_id": "asset_demo_web01"
+        },
+        "event_count": 7
+      }
+    ],
+    "incidents": 1,
+    "non_alerting": [
+      "198.51.100.7 (3 failures across separate windows)"
+    ]
+  },
+  "events": [
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:12:10Z",
+      "observed_at": "2026-01-01T09:12:12Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-001"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:12:31Z",
+      "observed_at": "2026-01-01T09:12:33Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-002"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:12:48Z",
+      "observed_at": "2026-01-01T09:12:50Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-003"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin",
+        "password": "AEGIS-CANARY-NOT-A-REAL-SECRET"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:13:02Z",
+      "observed_at": "2026-01-01T09:13:04Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-004"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:13:15Z",
+      "observed_at": "2026-01-01T09:13:17Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-005"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:13:29Z",
+      "observed_at": "2026-01-01T09:13:31Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-006"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:13:40Z",
+      "observed_at": "2026-01-01T09:13:42Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-007"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password",
+        "target_user": "admin"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_success",
+      "occurred_at": "2026-01-01T09:14:05Z",
+      "observed_at": "2026-01-01T09:14:07Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-bf-success-001"
+      },
+      "origin": "synthetic",
+      "severity": "info",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "admin",
+      "attributes": {
+        "auth_method": "ssh"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:00:12Z",
+      "observed_at": "2026-01-01T09:00:12Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-benign-001"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "198.51.100.7",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "deploy",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:21:40Z",
+      "observed_at": "2026-01-01T09:21:40Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-benign-002"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "198.51.100.7",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "deploy",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "login_failure",
+      "occurred_at": "2026-01-01T09:44:03Z",
+      "observed_at": "2026-01-01T09:44:03Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "auth-benign-003"
+      },
+      "origin": "synthetic",
+      "severity": "low",
+      "asset_id": "asset_demo_web01",
+      "source_ip": "198.51.100.7",
+      "destination_ip": "198.51.100.10",
+      "destination_port": 22,
+      "protocol": "tcp",
+      "principal": "deploy",
+      "attributes": {
+        "auth_method": "ssh",
+        "failure_reason": "invalid_password"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "network",
+      "event_type": "dns_query",
+      "occurred_at": null,
+      "observed_at": "2026-01-01T09:05:00Z",
+      "source": {
+        "adapter": "fixture",
+        "adapter_version": "1",
+        "native_id": "net-dns-001"
+      },
+      "origin": "synthetic",
+      "source_ip": "203.0.113.5",
+      "destination_ip": "198.51.100.53",
+      "destination_port": 53,
+      "protocol": "udp",
+      "asset_id": "asset_demo_ws07",
+      "attributes": {
+        "query": "updates.example.org",
+        "qtype": "A",
+        "rcode": "NOERROR"
+      }
+    }
+  ]
+}

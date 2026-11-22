@@ -1,0 +1,50 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_PASSWORD: ci-only-superuser }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    defaults: { run: { working-directory: backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client-16 || sudo apt-get install -y postgresql-client
+      - run: pip install -e ".[dev]"
+      - run: ruff check . && ruff format --check .
+      - run: mypy aegis
+      - run: python -m aegis.cli export-schema --check
+        env: { AEGIS_DATABASE_URL: "postgresql+psycopg://x:x@localhost/x", AEGIS_JWT_SECRET: "ci-only-not-a-secret-0123456789abcdef" }
+      - run: python -m pytest -p no:warnings
+        env:
+          AEGIS_TEST_ADMIN_URL: postgresql+psycopg://postgres:ci-only-superuser@127.0.0.1:5432/postgres
+
+  dashboard:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: apps/dashboard } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: apps/dashboard/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+      - run: npm audit --audit-level=high
+
+  secrets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }

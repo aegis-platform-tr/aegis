@@ -1,0 +1,249 @@
+{
+  "$defs": {
+    "Origin": {
+      "enum": [
+        "synthetic",
+        "observed"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "info",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_.\\-]+$",
+          "title": "Adapter",
+          "type": "string"
+        },
+        "adapter_version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "native_id": {
+          "description": "Stable identifier assigned by the source or collector. Used for dedup.",
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._:\\-/@]+$",
+          "title": "Native Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapter",
+        "adapter_version",
+        "native_id"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    }
+  },
+  "$id": "https://aegis.local/contracts/events/event-envelope.v1.schema.json",
+  "additionalProperties": false,
+  "description": "Public ingest shape. Server-assigned fields (tenant_id, event_id, ingested_at) are\nforbidden: tenant scope always comes from the authenticated credential.",
+  "properties": {
+    "asset_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9._:\\-/@]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Asset Id"
+    },
+    "attributes": {
+      "additionalProperties": true,
+      "title": "Attributes",
+      "type": "object"
+    },
+    "destination_ip": {
+      "anyOf": [
+        {
+          "format": "ipv4",
+          "type": "string"
+        },
+        {
+          "format": "ipv6",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Destination Ip"
+    },
+    "destination_port": {
+      "anyOf": [
+        {
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Destination Port"
+    },
+    "event_category": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_.\\-]+$",
+      "title": "Event Category",
+      "type": "string"
+    },
+    "event_type": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_.\\-]+$",
+      "title": "Event Type",
+      "type": "string"
+    },
+    "observed_at": {
+      "description": "Collector time.",
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "occurred_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Source time. Null when the source does not provide it.",
+      "title": "Occurred At"
+    },
+    "origin": {
+      "$ref": "#/$defs/Origin"
+    },
+    "principal": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Principal"
+    },
+    "protocol": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_.\\-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Protocol"
+    },
+    "raw_event_reference": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Raw Event Reference"
+    },
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "severity": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Severity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source": {
+      "$ref": "#/$defs/SourceRef"
+    },
+    "source_ip": {
+      "anyOf": [
+        {
+          "format": "ipv4",
+          "type": "string"
+        },
+        {
+          "format": "ipv6",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Ip"
+    },
+    "source_port": {
+      "anyOf": [
+        {
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Port"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_category",
+    "event_type",
+    "observed_at",
+    "source",
+    "origin"
+  ],
+  "title": "AEGIS event envelope v1 (public ingest shape)",
+  "type": "object"
+}
