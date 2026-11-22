@@ -13,3 +13,4 @@ dist/
 /agent/aegis-agent.exe
 backend/build/
 *.egg-info/
+!agent/testdata/*.log

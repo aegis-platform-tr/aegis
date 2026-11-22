@@ -1,0 +1,4 @@
+{"_path":"conn","ts":1767259200.123456,"uid":"CAbc1","id.orig_h":"198.51.100.20","id.orig_p":53002,"id.resp_h":"198.51.100.10","id.resp_p":443,"proto":"tcp","service":"ssl","duration":1.5,"orig_bytes":1500,"resp_bytes":9000,"conn_state":"SF"}
+{"_path":"dns","ts":1767259201.0,"uid":"CAbc2","id.orig_h":"198.51.100.20","id.orig_p":53000,"id.resp_h":"198.51.100.53","id.resp_p":53,"proto":"udp","query":"updates.example.org","qtype_name":"A","rcode_name":"NOERROR"}
+{"_path":"weird","ts":1767259202.0,"name":"bad_checksum"}
+{"_path":"conn","uid":"CAbc3"}
