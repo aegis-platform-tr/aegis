@@ -1,3 +1,4 @@
-# False positive reviewed 2026-11-22: docstring text "authenticated ingest -> normalize/persist"
-# on line 1 of the M1 test module matched the generic-api-key heuristic. No secret present.
+# Reviewed 2026-11-22: generic-api-key heuristic matched prose (the M1 test module docstring,
+# and the first version of this file quoting it). No secret present in either.
 d5dd6870a0f832d08b2846dd235d3658e40bbb26:backend/tests/test_m1_flow.py:generic-api-key:1
+e1475e3414de1a3aad92c69e8b0d44318046b296:.gitleaksignore:generic-api-key:1
