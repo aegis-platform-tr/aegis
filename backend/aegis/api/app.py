@@ -19,6 +19,7 @@ from aegis import __version__
 from aegis.api import (
     errors,
     routes_agents,
+    routes_ai_responses,
     routes_auth,
     routes_cases,
     routes_events,
@@ -153,4 +154,5 @@ def create_app() -> FastAPI:
     app.include_router(routes_cases.router)
     app.include_router(routes_agents.router)
     app.include_router(routes_rules.router)
+    app.include_router(routes_ai_responses.router)
     return app

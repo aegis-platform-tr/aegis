@@ -337,3 +337,112 @@ class ServiceEvaluation(Base):
     new_source_fraction: Mapped[Decimal | None] = mapped_column(Numeric(6, 4))
     alert_id: Mapped[str | None] = mapped_column(ForeignKey("detection_alerts.id"))
     evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class AiTenantPolicy(Base):
+    __tablename__ = "ai_tenant_policies"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    provider: Mapped[str] = mapped_column(String(32), default="mock")
+    allow_tools: Mapped[bool] = mapped_column(Boolean, default=True)
+    allow_write_proposals: Mapped[bool] = mapped_column(Boolean, default=False)
+    share_principals: Mapped[bool] = mapped_column(Boolean, default=False)
+    max_requests_per_day: Mapped[int] = mapped_column(Integer, default=500)
+    updated_by: Mapped[str] = mapped_column(String(200), default="system")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class AiRequest(Base):
+    __tablename__ = "ai_requests"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    actor: Mapped[str] = mapped_column(String(200))
+    capability: Mapped[str] = mapped_column(String(40))
+    policy_version: Mapped[str] = mapped_column(String(40))
+    decision: Mapped[str] = mapped_column(String(24))
+    status: Mapped[str] = mapped_column(String(24))
+    input_checks: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    output_checks: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    provider: Mapped[str | None] = mapped_column(String(32))
+    model: Mapped[str | None] = mapped_column(String(80))
+    provider_called: Mapped[bool] = mapped_column(Boolean, default=False)
+    tool_calls: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    cost_units: Mapped[int] = mapped_column(Integer, default=0)
+    prompt_sha256: Mapped[str | None] = mapped_column(String(64))
+    prompt_chars: Mapped[int] = mapped_column(Integer, default=0)
+    evidence_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    error: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class ManagedResource(Base):
+    __tablename__ = "managed_resources"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    name: Mapped[str] = mapped_column(String(120))
+    adapter: Mapped[str] = mapped_column(String(32))
+    interface: Mapped[str] = mapped_column(String(64))
+    protected_cidrs: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    live_writes_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    policy_revision: Mapped[int] = mapped_column(Integer, default=1)
+    policy_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    test_fail_mode: Mapped[str | None] = mapped_column(String(24))
+    created_by: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class ResponseProposal(Base):
+    __tablename__ = "response_proposals"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    resource_id: Mapped[str] = mapped_column(ForeignKey("managed_resources.id"))
+    action_type: Mapped[str] = mapped_column(String(32))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    diff: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    diff_sha256: Mapped[str] = mapped_column(String(64))
+    base_policy_revision: Mapped[int] = mapped_column(Integer)
+    author: Mapped[str] = mapped_column(String(200))
+    author_kind: Mapped[str] = mapped_column(String(8))
+    reason: Mapped[str] = mapped_column(Text)
+    evidence: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    safeguards: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(String(20))
+    status_reason: Mapped[str | None] = mapped_column(Text)
+    preview: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class ResponseApproval(Base):
+    __tablename__ = "response_approvals"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    proposal_id: Mapped[str] = mapped_column(ForeignKey("response_proposals.id"))
+    approver: Mapped[str] = mapped_column(String(200))
+    decision: Mapped[str] = mapped_column(String(8))
+    diff_sha256: Mapped[str] = mapped_column(String(64))
+    base_policy_revision: Mapped[int] = mapped_column(Integer)
+    reason: Mapped[str] = mapped_column(Text)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class ResponseExecution(Base):
+    __tablename__ = "response_executions"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    proposal_id: Mapped[str] = mapped_column(ForeignKey("response_proposals.id"))
+    idempotency_key: Mapped[str] = mapped_column(String(80))
+    kind: Mapped[str] = mapped_column(String(10))
+    actor: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(16))
+    pre_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    post_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    verification: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    error: Mapped[str | None] = mapped_column(Text)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

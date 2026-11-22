@@ -40,6 +40,8 @@ class Capability(StrEnum):
     RESPONSES_PROPOSE = "responses:propose"
     RESPONSES_APPROVE = "responses:approve"
     RESPONSES_EXECUTE = "responses:execute"
+    RESOURCES_MANAGE = "resources:manage"
+    AI_POLICY = "ai:policy"
 
 
 _READ = {
@@ -85,7 +87,9 @@ ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
             Capability.SUPPRESSIONS_MANAGE,
             Capability.AI_USE,
             Capability.AI_AUDIT,
+            Capability.AI_POLICY,
             Capability.RESPONSES_READ,
+            Capability.RESOURCES_MANAGE,
         }
     ),
     "auditor": frozenset(

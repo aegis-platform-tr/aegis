@@ -22,6 +22,10 @@ DEV_USERS = [
     ("viewer@demo.local", "tenant_demo", ["viewer"]),
     ("auditor@demo.local", "tenant_demo", ["auditor"]),
     ("admin@demo.local", "tenant_demo", ["tenant_admin"]),
+    ("maintainer@demo.local", "tenant_demo", ["detection_maintainer"]),
+    ("proposer@demo.local", "tenant_demo", ["analyst", "response_proposer"]),
+    ("approver@demo.local", "tenant_demo", ["response_approver"]),
+    ("lead@demo.local", "tenant_demo", ["response_proposer", "response_approver"]),
     ("analyst@other.local", "tenant_other", ["analyst"]),
 ]
 
@@ -71,11 +75,44 @@ def cmd_seed_dev(_: argparse.Namespace) -> int:
                         password_hash=hash_password(password),
                     )
                 )
+    _seed_resources()
     print(
         f"seeded {len(DEV_TENANTS)} tenants and {len(DEV_USERS)} development users "
         f"(password from AEGIS_DEV_PASSWORD; development only)"
     )
     return 0
+
+
+def _seed_resources() -> None:
+    """One simulation resource per dev tenant (host state is never touched)."""
+    from sqlalchemy import select
+
+    from aegis.db import session_scope
+    from aegis.models import ManagedResource
+
+    for tid, _ in DEV_TENANTS:
+        with session_scope(tenant_id=tid) as s:
+            exists = s.execute(
+                select(ManagedResource.id).where(
+                    ManagedResource.tenant_id == tid, ManagedResource.name == "lab-edge (simulated)"
+                )
+            ).first()
+            if not exists:
+                s.add(
+                    ManagedResource(
+                        id=f"res_sim_{tid}",
+                        tenant_id=tid,
+                        name="lab-edge (simulated)",
+                        adapter="simulation",
+                        interface="eth0",
+                        protected_cidrs=["198.51.100.0/28", "192.0.2.250/32"],
+                        enabled=True,
+                        live_writes_enabled=False,
+                        policy_revision=1,
+                        policy_snapshot={"rules": []},
+                        created_by="seed-dev",
+                    )
+                )
 
 
 def cmd_worker(args: argparse.Namespace) -> int:
@@ -90,6 +127,41 @@ def cmd_worker(args: argparse.Namespace) -> int:
     else:
         run_forever()
     return 0
+
+
+def cmd_ai_eval(args: argparse.Namespace) -> int:
+    """Run the AI gateway evaluation set against the configured (local-demo) database through
+    the real API and write the markdown report."""
+    import os
+    from pathlib import Path
+
+    from fastapi.testclient import TestClient
+
+    from aegis.ai import evaluate
+    from aegis.api.app import create_app
+    from aegis.worker import drain
+
+    pw = os.environ.get("AEGIS_DEV_PASSWORD", "")
+    with TestClient(create_app()) as c:
+
+        def login(user: str) -> dict[str, str]:
+            r = c.post("/api/v1/auth/login", json={"username": user, "password": pw})
+            return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+        c.post("/api/v1/fixtures/auth-bruteforce-demo/import", headers=login("analyst@demo.local"))
+        drain()
+        inc = c.get("/api/v1/incidents", headers=login("analyst@demo.local")).json()["items"][0]
+        other = c.post(
+            "/api/v1/fixtures/auth-bruteforce-demo/import", headers=login("analyst@other.local")
+        ).json()
+        drain()
+        evs = c.get("/api/v1/events?limit=1", headers=login("analyst@other.local")).json()
+        _ = other
+        results = evaluate.run(c, login, inc["incident_id"], evs["items"][0]["event_id"])
+    text = evaluate.report(results)
+    Path(args.out).write_text(text)
+    print(text)
+    return 1 if any(r["status"] == "fail" for r in results) else 0
 
 
 def cmd_api(args: argparse.Namespace) -> int:
@@ -163,6 +235,9 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--host", default="127.0.0.1")
     a.add_argument("--port", type=int, default=8000)
     a.set_defaults(fn=cmd_api)
+    ev = sub.add_parser("ai-eval")
+    ev.add_argument("--out", default="../docs/evaluation/ai-gateway.md")
+    ev.set_defaults(fn=cmd_ai_eval)
     e = sub.add_parser("export-schema")
     e.add_argument("--check", action="store_true")
     e.set_defaults(fn=cmd_export_schema)
