@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 import uuid
 from collections.abc import Awaitable, Callable
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request, Response
@@ -14,12 +16,11 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from aegis import __version__
-from aegis.api import errors, routes_auth, routes_cases, routes_events
+from aegis.api import errors, routes_agents, routes_auth, routes_cases, routes_events
 from aegis.config import get_settings
 from aegis.db import session_scope
 from aegis.logging_setup import configure_logging
 
-EXPECTED_MIGRATION_HEAD = "0001_initial"
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
@@ -28,6 +29,16 @@ SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
 }
 log = logging.getLogger("aegis.api")
+
+
+@lru_cache(maxsize=1)
+def migration_head() -> str | None:
+    """Head revision of the migrations shipped with this build."""
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    cfg = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+    return ScriptDirectory.from_config(cfg).get_current_head()
 
 
 def create_app() -> FastAPI:
@@ -116,7 +127,7 @@ def create_app() -> FastAPI:
                 s.execute(text("SELECT 1"))
                 head = s.execute(text("SELECT version_num FROM alembic_version")).scalar()
             checks["database"] = "ok"
-            checks["migrations"] = "ok" if head == EXPECTED_MIGRATION_HEAD else f"at {head}"
+            checks["migrations"] = "ok" if head == migration_head() else f"behind ({head})"
         except SQLAlchemyError:
             log.warning("readiness check failed: database unavailable")
             checks["database"] = "unavailable"
@@ -133,4 +144,5 @@ def create_app() -> FastAPI:
     app.include_router(routes_auth.router)
     app.include_router(routes_events.router)
     app.include_router(routes_cases.router)
+    app.include_router(routes_agents.router)
     return app

@@ -29,6 +29,8 @@ class Capability(StrEnum):
     INCIDENTS_UPDATE = "incidents:update"
     AUDIT_READ = "audit:read"
     FIXTURES_IMPORT = "fixtures:import"
+    AGENTS_READ = "agents:read"
+    AGENTS_MANAGE = "agents:manage"
 
 
 _READ = {
@@ -36,6 +38,7 @@ _READ = {
     Capability.ALERTS_READ,
     Capability.RULES_READ,
     Capability.INCIDENTS_READ,
+    Capability.AGENTS_READ,
 }
 
 # Capability matrix (docs/security/capability-matrix.md). Server-side source of truth.
@@ -47,7 +50,9 @@ ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
     "detection_maintainer": frozenset(_READ),
     "response_proposer": frozenset(_READ),
     "response_approver": frozenset(_READ),
-    "tenant_admin": frozenset(_READ | {Capability.AUDIT_READ, Capability.FIXTURES_IMPORT}),
+    "tenant_admin": frozenset(
+        _READ | {Capability.AUDIT_READ, Capability.FIXTURES_IMPORT, Capability.AGENTS_MANAGE}
+    ),
     "auditor": frozenset({Capability.AUDIT_READ, Capability.INCIDENTS_READ}),
 }
 

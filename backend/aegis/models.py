@@ -208,3 +208,42 @@ class AuditLog(Base):
     request_id: Mapped[str | None] = mapped_column(String(64))
     details: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class EnrollmentToken(Base):
+    __tablename__ = "enrollment_tokens"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    created_by: Mapped[str] = mapped_column(String(200))
+    label: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    used_by_agent: Mapped[str | None] = mapped_column(String(40))
+
+
+class Agent(Base):
+    __tablename__ = "agents"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    hostname: Mapped[str] = mapped_column(String(200))
+    platform: Mapped[str] = mapped_column(String(16))
+    agent_version: Mapped[str] = mapped_column(String(32))
+    status: Mapped[str] = mapped_column(String(16), default="active")
+    enrolled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_heartbeat: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    clock_skew_ms: Mapped[int | None] = mapped_column(Integer)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_by: Mapped[str | None] = mapped_column(String(200))
+    revoke_reason: Mapped[str | None] = mapped_column(Text)
+
+
+class AgentCredential(Base):
+    __tablename__ = "agent_credentials"
+    credential_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    agent_id: Mapped[str] = mapped_column(ForeignKey("agents.id"))
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

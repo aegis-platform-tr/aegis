@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "config_version": 1,
+  "server_url": "https://aegis.example.internal",
+  "state_dir": "/var/lib/aegis-agent",
+  "heartbeat_seconds": 30,
+  "flush_seconds": 2,
+  "batch_size": 200,
+  "spool_max_bytes": 67108864,
+  "sources": [
+    {"name": "auth", "type": "linux_auth", "path": "/var/log/auth.log", "asset_id": "web01"},
+    {"name": "suricata", "type": "suricata_eve", "path": "/var/log/suricata/eve.json", "asset_id": "sensor01"},
+    {"name": "zeek-conn", "type": "zeek_json", "path": "/opt/zeek/logs/current/conn.log", "asset_id": "sensor01"},
+    {"name": "zeek-dns", "type": "zeek_json", "path": "/opt/zeek/logs/current/dns.log", "asset_id": "sensor01"}
+  ]
+}

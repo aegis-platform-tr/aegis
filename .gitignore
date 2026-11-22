@@ -9,3 +9,5 @@ dist/
 .env
 *.log
 /tmp/
+/agent/aegis-agent
+/agent/aegis-agent.exe

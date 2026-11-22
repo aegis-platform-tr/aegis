@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "config_version": 1,
+  "server_url": "https://aegis.example.internal",
+  "state_dir": "C:\\ProgramData\\AEGIS\\agent",
+  "sources": [
+    {"name": "security", "type": "windows_eventlog", "channel": "Security", "asset_id": "ws07"}
+  ]
+}

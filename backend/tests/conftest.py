@@ -130,7 +130,8 @@ def clean_data(db_env: dict[str, str]) -> Iterator[None]:
     with owner.begin() as c:
         c.execute(
             text(
-                "TRUNCATE incident_transitions, incident_alerts, incidents, alert_events, "
+                "TRUNCATE agent_credentials, agents, enrollment_tokens, incident_transitions, "
+                "incident_alerts, incidents, alert_events, "
                 "detection_alerts, work_items, security_events, audit_logs, "
                 "revoked_tokens RESTART IDENTITY"
             )

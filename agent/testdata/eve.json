@@ -1,0 +1,7 @@
+{"timestamp":"2026-01-01T09:20:00.000001+0000","flow_id":1001,"event_type":"alert","src_ip":"203.0.113.9","src_port":44321,"dest_ip":"198.51.100.10","dest_port":80,"proto":"TCP","alert":{"action":"allowed","gid":1,"signature_id":2100498,"rev":7,"signature":"GPL ATTACK_RESPONSE id check returned root","category":"Potentially Bad Traffic","severity":2},"new_field_from_future_version":{"x":1}}
+{"timestamp":"2026-01-01T09:20:01.000000+0000","flow_id":1002,"event_type":"dns","src_ip":"198.51.100.20","src_port":53000,"dest_ip":"198.51.100.53","dest_port":53,"proto":"UDP","dns":{"type":"query","id":1,"rrname":"updates.example.org","rrtype":"A"}}
+{"timestamp":"2026-01-01T09:20:02.000000+0000","flow_id":1003,"event_type":"http","src_ip":"198.51.100.20","src_port":53001,"dest_ip":"198.51.100.10","dest_port":80,"proto":"TCP","http":{"hostname":"intranet.example","url":"/login?token=SECRET-CANARY","http_method":"POST","status":302}}
+{"timestamp":"2026-01-01T09:20:03.000000+0000","event_type":"stats","stats":{"uptime":10}}
+{"timestamp":"2026-01-01T09:20:04.000000+0000","flow_id":1004,"event_type":"flow","src_ip":"198.51.100.20","src_port":53002,"dest_ip":"198.51.100.10","dest_port":443,"proto":"TCP","app_proto":"tls","flow":{"pkts_toserver":10,"pkts_toclient":9,"bytes_toserver":1500,"bytes_toclient":9000,"state":"closed","reason":"timeout"}}
+{"timestamp":"not-a-time","event_type":"alert","alert":{}}
+{"event_type":
