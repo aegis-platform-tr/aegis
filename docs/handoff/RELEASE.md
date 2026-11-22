@@ -61,7 +61,7 @@ Agent: see `agent/README.md`; enrollment tokens from *Agent management* (tenant 
 2. **GitHub Actions** — never executed; no GitHub account was linked to the build session.
 3. **Windows runtime** — no Windows host. CI includes `windows-2022` for agent unit tests;
    the live `wevtutil` collector needs a manual test with an account in *Event Log Readers*.
-4. **govulncheck / gitleaks** — Go proxy and GitHub downloads unreachable; both run in CI.
+4. **govulncheck / gitleaks** — run in CI only. The first CI run found Go 1.24 standard-library vulnerabilities; agent binaries are now built only by CI with the latest stable Go (artifact `aegis-agent-binaries`).
 5. **15-minute benchmark** — only 3 minutes were run.
 6. **Live firewall connectors** — intentionally not implemented; require explicitly
    authorized disposable infrastructure and a documented acceptance record.

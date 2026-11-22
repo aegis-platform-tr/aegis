@@ -48,7 +48,7 @@ address ranges.
 
 ## Quick start (verified path, no Docker)
 
-Requirements: Python 3.12+, Go 1.24+, Node 22+, PostgreSQL 16.
+Requirements: Python 3.12+, Go (latest stable; 1.26.11+ — older toolchains ship known standard-library vulnerabilities), Node 22+, PostgreSQL 16.
 
 ```bash
 psql -U postgres -v owner_password=… -v app_password=… -v dbname=aegis \
@@ -73,6 +73,9 @@ Dashboard: http://127.0.0.1:8080. The build environment had no registry access, 
 has only been validated with `docker compose config`.
 
 ### Agent
+
+Use the binaries produced by CI (Actions → latest run → artifact `aegis-agent-binaries`,
+built with the latest patched Go and checked with `govulncheck`), or build yourself:
 
 ```bash
 cd agent && go build -trimpath -o aegis-agent ./cmd/aegis-agent

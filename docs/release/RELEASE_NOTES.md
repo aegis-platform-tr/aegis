@@ -32,7 +32,7 @@ below points to a test, an evaluation document or a manual verification record.
 | Dashboard `tsc` + production build | pass |
 | `npm audit` (dashboard) | 0 vulnerabilities |
 | `pip-audit` (runtime deps, clean venv) | no known vulnerabilities |
-| `govulncheck` | **not run**: Go module proxy unreachable from build environment (agent has no third-party modules; stdlib go1.24.7) |
+| `govulncheck` | First CI run **found 10+ standard-library vulnerabilities in Go 1.24** (net/http, crypto/tls, crypto/x509; fixed in Go 1.26.9–1.26.11). Agent binaries built in the build environment with go1.24.7 are **withdrawn**; release binaries are now built only by CI with the latest stable Go and scanned in binary mode. |
 | Secret scan (`scripts/secret_scan.py`) | 0 findings; gitleaks runs in CI only |
 | SBOM | `release/sbom/backend-python.cdx.json` (34 runtime components), `dashboard-npm.cdx.json`, `agent-go.txt` |
 | Benchmark | `docs/evaluation/benchmark.md` (3-minute run, not 15) |

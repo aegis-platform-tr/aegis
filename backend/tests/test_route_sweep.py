@@ -10,8 +10,11 @@ import json
 import re
 from typing import Any
 
-from conftest import fixture_events, login
+from conftest import DEV_PASSWORD, fixture_events, login
 
+from aegis.db import session_scope
+from aegis.models import User
+from aegis.security import ROLE_CAPABILITIES, hash_password
 from aegis.worker import drain
 
 PUBLIC = {
@@ -131,11 +134,6 @@ def _seed_demo(client: Any) -> dict[str, str]:
 def test_other_tenant_cannot_touch_any_resource_by_id(client: Any) -> None:
     ids = _seed_demo(client)
     # A user in tenant_other holding every role, so failures can only come from tenant scope.
-    from aegis.db import session_scope
-    from aegis.models import User
-    from aegis.security import ROLE_CAPABILITIES, hash_password
-    from conftest import DEV_PASSWORD
-
     with session_scope() as s:
         s.add(
             User(
@@ -180,11 +178,6 @@ def test_other_tenant_cannot_touch_any_resource_by_id(client: Any) -> None:
 
 def test_list_routes_never_include_other_tenant_records(client: Any) -> None:
     ids = _seed_demo(client)
-    from aegis.db import session_scope
-    from aegis.models import User
-    from aegis.security import ROLE_CAPABILITIES, hash_password
-    from conftest import DEV_PASSWORD
-
     with session_scope() as s:
         s.add(
             User(

@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-go@v5
-        with: { go-version: "1.24" }
+        with: { go-version: "stable", cache: false }
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: pip install -e ".[dev]" pip-audit
       - run: ruff check . && ruff format --check .
@@ -35,17 +35,20 @@ jobs:
 
   agent:
     strategy:
+      fail-fast: false
       matrix: { os: [ubuntu-24.04, windows-2022] }
     runs-on: ${{ matrix.os }}
     defaults: { run: { working-directory: agent } }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-        with: { go-version: "1.24" }
+        with: { go-version: "stable", cache: false }
+      - run: go version
       - run: go vet ./...
       - run: go test -count=1 ./...
       - run: go build -trimpath -o aegis-agent-bin ./cmd/aegis-agent
-      - run: go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: govulncheck ./...
 
   dashboard:
     runs-on: ubuntu-24.04
@@ -66,5 +69,29 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install pydantic && python scripts/secret_scan.py
-      - uses: gitleaks/gitleaks-action@v2
-        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+      # gitleaks CLI (MIT) via its official container; the GitHub Action needs a paid
+      # license for organization repositories.
+      - run: >-
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest
+          git /repo --redact --verbose --exit-code 1
+
+  agent-binaries:
+    # Release binaries are built here, with the latest patched Go toolchain, never by hand.
+    needs: [agent]
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: agent } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "stable", cache: false }
+      - name: Build
+        env: { CGO_ENABLED: "0" }
+        run: |
+          go version | tee BUILD-INFO.txt
+          GOOS=linux GOARCH=amd64 go build -trimpath -o dist/aegis-agent-linux-amd64 ./cmd/aegis-agent
+          GOOS=windows GOARCH=amd64 go build -trimpath -o dist/aegis-agent-windows-amd64.exe ./cmd/aegis-agent
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck -mode=binary dist/aegis-agent-linux-amd64 | tee -a BUILD-INFO.txt
+          cd dist && sha256sum * | tee SHA256SUMS && cp ../BUILD-INFO.txt .
+      - uses: actions/upload-artifact@v4
+        with: { name: aegis-agent-binaries, path: agent/dist/, retention-days: 30 }

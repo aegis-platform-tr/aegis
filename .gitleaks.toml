@@ -1,0 +1,19 @@
+# gitleaks configuration: default rules plus an allowlist for inert test canaries only.
+# Each allowlisted value is a deliberately fake secret used to prove redaction works.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "inert test canaries and generated SBOMs"
+regexes = [
+  '''AKIAABCDEFGHIJKLMNOP''',
+  '''CorrectHorse-canary-77''',
+  '''Hunter2-canary-value''',
+  '''AEGIS-CANARY-NOT-A-REAL-SECRET''',
+  '''SECRET-CANARY''',
+  '''aegis_enr_forged-value''',
+]
+paths = [
+  '''release/sbom/.*''',
+  '''apps/dashboard/package-lock\.json''',
+]
