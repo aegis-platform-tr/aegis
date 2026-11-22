@@ -1,12 +1,26 @@
 package config
 
 import (
+	"encoding/json"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-const good = `{"schema_version":1,"config_version":3,"server_url":"https://aegis.example","state_dir":"/var/lib/aegis-agent",
-"sources":[{"name":"auth","type":"linux_auth","path":"/var/log/auth.log","asset_id":"web01"}]}`
+// build makes a config with OS-appropriate absolute paths (tests run on Linux and Windows).
+func build(logPath string) string {
+	base, _ := filepath.Abs("testroot")
+	state, _ := json.Marshal(filepath.Join(base, "state"))
+	if logPath == "" {
+		logPath = filepath.Join(base, "auth.log")
+	}
+	logf, _ := json.Marshal(logPath)
+	return `{"schema_version":1,"config_version":3,"server_url":"https://aegis.example","state_dir":` +
+		string(state) + `,"sources":[{"name":"auth","type":"linux_auth","path":` + string(logf) +
+		`,"asset_id":"web01"}]}`
+}
+
+var good = build("")
 
 func TestValidConfig(t *testing.T) {
 	c, err := Parse([]byte(good))
@@ -23,7 +37,7 @@ func TestRejectsUnsafeOrInvalid(t *testing.T) {
 		"unknown field (e.g. command)": strings.Replace(good, `"asset_id":"web01"`, `"asset_id":"web01","command":"rm -rf /"`, 1),
 		"unknown source type":          strings.Replace(good, "linux_auth", "shell_exec", 1),
 		"plain http remote":            strings.Replace(good, "https://aegis.example", "http://aegis.example", 1),
-		"relative path":                strings.Replace(good, "/var/log/auth.log", "auth.log", 1),
+		"relative path":                build("auth.log"),
 		"wrong schema":                 strings.Replace(good, `"schema_version":1`, `"schema_version":2`, 1),
 		"bad asset":                    strings.Replace(good, `"web01"`, `"web 01; ls"`, 1),
 	}

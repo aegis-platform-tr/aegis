@@ -21,7 +21,9 @@ Pydantic 2.14, argon2-cffi, PyJWT. Dashboard: React 19.3, Vite 8.3, TypeScript 7
   `docker compose config`. Everything else was verified against native PostgreSQL 16.
 - **No GitHub account linked** to the build session, so nothing was pushed and the CI
   workflow has not executed yet.
-- Package registries (PyPI, npm) were reachable.
+- Package registries (PyPI, npm) were reachable; the Go module proxy and GitHub release
+  downloads were not (so `govulncheck` and `gitleaks` run only in CI).
+- Host: 2 vCPU, 8 GiB RAM (benchmark reference environment).
 
 ## Maintainer target environment (from project notes)
 

@@ -13,7 +13,7 @@ AEGIS is defensive software. It must only be used on systems and data you own or
 explicitly authorized to monitor. The project accepts no contributions that add offensive
 capability (exploitation, credential theft, evasion, persistence, unauthorized scanning).
 
-## Security model (M1)
+## Security model
 
 - Tenant identity comes only from the server-validated credential, never from request bodies.
   Payloads containing `tenant_id` are rejected.
@@ -29,4 +29,10 @@ capability (exploitation, credential theft, evasion, persistence, unauthorized s
 - Development credentials exist only in the `local-demo` profile and must be set through
   environment variables. The repository contains no real secrets.
 
-See `docs/security/` for the capability matrix and threat notes.
+- Agents use single-use, expiring, tenant-bound enrollment tokens and individual, rotatable,
+  revocable credentials (only SHA-256 digests are stored).
+- AI requests pass a deterministic gateway; model output never grants permissions and write
+  tools can only draft response proposals that need independent human approval.
+- Response actions run in a simulation adapter; live firewall writes are disabled by schema.
+
+See `docs/security/` for the capability matrix, threat notes and the control mapping.

@@ -1,0 +1,17 @@
+# aegis-agent build inputs (go version -m), built with: CGO_ENABLED=0 go build -trimpath
+/tmp/aegis-agent-linux: go1.24.7
+	path	aegis/agent/cmd/aegis-agent
+	mod	aegis/agent	v0.0.0-20261122183409-69c4d0872dc4+dirty	
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-trimpath=true
+	build	CGO_ENABLED=0
+	build	GOARCH=amd64
+	build	GOOS=linux
+	build	GOAMD64=v1
+	build	vcs=git
+	build	vcs.revision=69c4d0872dc4d480ab5c979f365eae8bd171286f
+	build	vcs.time=2026-11-22T18:34:09Z
+	build	vcs.modified=true
+
+Third-party modules: none (standard library only).

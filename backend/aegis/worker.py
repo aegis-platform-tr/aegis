@@ -8,6 +8,7 @@ import logging
 import signal
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
@@ -59,6 +60,7 @@ def process_one() -> bool | None:
                     correlate_alert(session, outcome.alert_id)
             item.status = "done"
             item.attempts += 1
+            item.updated_at = datetime.now(UTC)  # completion time: processing-lag metric
         log.info("work item processed", extra={"work_item_id": claimed[0], "event_id": claimed[2]})
         return True
     except (SQLAlchemyError, ValueError, LookupError) as exc:
