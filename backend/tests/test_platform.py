@@ -132,3 +132,20 @@ def test_backup_and_restore_preserves_evidence_chain(
         dst.dispose()
     finally:
         _drop(db_env["_ADMIN_URL"], restored)
+
+
+def test_overview_counts_are_real_and_tenant_scoped(client: Any) -> None:
+    h = login(client)
+    empty = client.get("/api/v1/overview", headers=h).json()
+    assert empty["events_total"] == 0 and empty["network"]["status"] == "no network telemetry yet"
+    assert empty["last_event_ingested_at"] is None
+    client.post("/api/v1/events", json={"events": fixture_events()}, headers=h)
+    q = client.get("/api/v1/system/status", headers=h).json()["queue"]
+    assert q["pending"] == 12
+    drain()
+    o = client.get("/api/v1/overview", headers=h).json()
+    assert o["events_total"] == 12 and o["incidents_by_status"] == {"new": 1}
+    assert o["alerts_by_severity"] == {"high": 1} and o["pipeline"]["pending"] == 0
+    assert o["events_by_origin"] == {"synthetic": 12}
+    other = client.get("/api/v1/overview", headers=login(client, "analyst@other.local")).json()
+    assert other["events_total"] == 0 and other["incidents_by_status"] == {}

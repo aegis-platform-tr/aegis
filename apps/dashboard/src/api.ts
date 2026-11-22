@@ -42,6 +42,9 @@ export interface EventOut {
 }
 
 export interface AlertOut {
+  suppressed: boolean;
+  suppression_id: string | null;
+  evidence_quality: string;
   alert_id: string;
   rule_id: string;
   rule_revision: number;
@@ -80,7 +83,7 @@ export interface IncidentOut {
 }
 
 export interface TimelineEntry {
-  kind: "event" | "alert" | "transition";
+  kind: "event" | "alert" | "transition" | "note";
   at: string;
   ref_id: string;
   summary: string;
@@ -128,8 +131,13 @@ export function setUnauthorizedHandler(fn: () => void): void {
   onUnauthorized = fn;
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers: Record<string, string> = { Accept: "application/json" };
+async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  extraHeaders?: Record<string, string>,
+): Promise<T> {
+  const headers: Record<string, string> = { Accept: "application/json", ...(extraHeaders ?? {}) };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers["Authorization"] = `Bearer ${token}`;
   let res: Response;
@@ -156,6 +164,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     );
   }
   return data as T;
+}
+
+export async function get<T>(path: string): Promise<T> {
+  return request<T>("GET", path);
+}
+export async function post<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+  return request<T>("POST", path, body, headers);
+}
+export async function put<T>(path: string, body?: unknown): Promise<T> {
+  return request<T>("PUT", path, body);
 }
 
 export const api = {

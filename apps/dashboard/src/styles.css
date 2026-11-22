@@ -103,3 +103,44 @@ pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6p
 }
 .fact .v { overflow-wrap: anywhere; }
 button { white-space: nowrap; }
+
+/* ---- layout v2 ---- */
+.layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 54px); }
+.layout > main { max-width: none; margin: 0; padding: 20px 28px; min-width: 0; }
+nav[aria-label="Modules"] { border-right: 1px solid var(--line); padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; background: var(--panel); }
+nav[aria-label="Modules"] a { color: var(--text); padding: 7px 10px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+nav[aria-label="Modules"] a:hover { background: #1c2430; text-decoration: none; }
+nav[aria-label="Modules"] a.active { background: #4c8dff22; color: #fff; box-shadow: inset 2px 0 0 var(--accent); }
+nav[aria-label="Modules"] a.off { color: var(--muted); }
+.tag { font-size: 10px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.tile { color: var(--text); display: block; }
+.tile:hover { border-color: var(--accent); text-decoration: none; }
+.tile .k { color: var(--muted); font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
+.counts { display: flex; gap: 10px; flex-wrap: wrap; }
+.count strong { font-size: 18px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+textarea { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: inherit; width: 100%; }
+.card + .card { margin-top: 10px; }
+tr.selected { background: #4c8dff18; }
+.chart { width: 100%; height: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin: 6px 0; }
+.chart .axis { stroke: var(--line); }
+.chart .tick { fill: var(--muted); font-size: 11px; }
+.chart .series { fill: none; stroke: var(--accent); stroke-width: 2; }
+.chart .baseline { fill: none; stroke: var(--muted); stroke-dasharray: 4 3; }
+.mark { font-size: 12px; fill: var(--text); }
+.mark.anomaly { fill: #ff7b72; color: #ff7b72; }
+.mark.expected_burst { fill: var(--warn); color: var(--warn); }
+.mark.missing_telemetry { fill: var(--muted); color: var(--muted); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); }
+.swatch { display: inline-block; width: 16px; height: 0; border-top: 2px solid var(--accent); vertical-align: middle; margin-right: 4px; }
+.swatch.baseline { border-top: 2px dashed var(--muted); }
+.status.active, .status.verified, .status.ready, .status.ok, .status.allow, .status.idle { color: var(--ok); border-color: var(--ok); }
+.status.revoked, .status.failed, .status.deny, .status.denied, .status.disabled, .status.invalidated, .status.expired { color: var(--bad); border-color: var(--bad); }
+.status.stale, .status.degraded, .status.partial, .status.flag, .status.redact, .status.require_review, .status.approval_pending, .status.draft, .status.dependency_unavailable, .status.processing { color: var(--warn); border-color: var(--warn); }
+.status.retired, .status.rolled_back, .status.never_seen { color: var(--muted); }
+.timeline li.note::before { background: var(--ok); }
+.kind.note { color: var(--ok); border-color: var(--ok); }
+.disabled-module p { line-height: 1.5; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } nav[aria-label="Modules"] { flex-direction: row; flex-wrap: wrap; } }
+.tiles .card + .card { margin-top: 0; }

@@ -23,6 +23,7 @@ from aegis.api import (
     routes_auth,
     routes_cases,
     routes_events,
+    routes_overview,
     routes_rules,
 )
 from aegis.config import get_settings
@@ -155,4 +156,5 @@ def create_app() -> FastAPI:
     app.include_router(routes_agents.router)
     app.include_router(routes_rules.router)
     app.include_router(routes_ai_responses.router)
+    app.include_router(routes_overview.router)
     return app
