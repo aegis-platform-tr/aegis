@@ -107,7 +107,11 @@ def test_fixture_import_endpoint_uses_same_pipeline_and_is_idempotent(
 ) -> None:
     h = login(client)
     packs = client.get("/api/v1/fixtures", headers=h).json()
-    assert [p["name"] for p in packs] == ["auth-bruteforce-demo"]
+    assert [p["name"] for p in packs] == [
+        "auth-bruteforce-demo",
+        "ddos-baseline-demo",
+        "ids-correlation-demo",
+    ]
     assert packs[0]["origin"] == "synthetic"
     first = client.post("/api/v1/fixtures/auth-bruteforce-demo/import", headers=h).json()
     second = client.post("/api/v1/fixtures/auth-bruteforce-demo/import", headers=h).json()

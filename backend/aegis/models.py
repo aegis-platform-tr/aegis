@@ -111,6 +111,12 @@ class DetectionRule(Base):
     __tablename__ = "detection_rules"
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
     revision: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tenant_id: Mapped[str | None] = mapped_column(ForeignKey("tenants.id"))
+    schema_compat: Mapped[str] = mapped_column(String(16), default="1.0")
+    evidence_fields: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    change_reason: Mapped[str] = mapped_column(Text, default="initial revision")
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_by: Mapped[str | None] = mapped_column(String(200))
     name: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(16))
@@ -142,6 +148,9 @@ class DetectionAlert(Base):
     explanation: Mapped[str] = mapped_column(Text)
     mitre: Mapped[list[dict[str, str]]] = mapped_column(JSONB, default=list)
     origin: Mapped[str] = mapped_column(String(16))
+    suppressed: Mapped[bool] = mapped_column(Boolean, default=False)
+    suppression_id: Mapped[str | None] = mapped_column(String(40))
+    evidence_quality: Mapped[str] = mapped_column(String(16), default="direct")
     evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
 
@@ -247,3 +256,84 @@ class AgentCredential(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RuleTenantSetting(Base):
+    __tablename__ = "rule_tenant_settings"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), primary_key=True)
+    rule_id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean)
+    changed_by: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(Text)
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class Suppression(Base):
+    __tablename__ = "suppressions"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    rule_id: Mapped[str | None] = mapped_column(String(80))
+    entity_field: Mapped[str] = mapped_column(String(64))
+    entity_value: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(Text)
+    created_by: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_by: Mapped[str | None] = mapped_column(String(200))
+
+
+class IncidentNote(Base):
+    __tablename__ = "incident_notes"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    incident_id: Mapped[str] = mapped_column(ForeignKey("incidents.id"))
+    kind: Mapped[str] = mapped_column(String(32))
+    author: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())
+
+
+class ServiceMinute(Base):
+    __tablename__ = "service_minutes"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), primary_key=True)
+    service_key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    minute: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    requests: Mapped[int] = mapped_column(Integer, default=0)
+    errors: Mapped[int] = mapped_column(Integer, default=0)
+    bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+
+
+class ServiceMinuteSource(Base):
+    __tablename__ = "service_minute_sources"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), primary_key=True)
+    service_key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    minute: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    source_ip: Mapped[str] = mapped_column(INET, primary_key=True)
+    requests: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ServiceBaselineState(Base):
+    __tablename__ = "service_baseline_state"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), primary_key=True)
+    service_key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    max_seen_minute: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_evaluated_minute: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    late_events: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ServiceEvaluation(Base):
+    __tablename__ = "service_evaluations"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), primary_key=True)
+    service_key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    minute: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    classification: Mapped[str] = mapped_column(String(24))
+    requests: Mapped[int] = mapped_column(Integer)
+    unique_sources: Mapped[int] = mapped_column(Integer)
+    error_rate: Mapped[Decimal] = mapped_column(Numeric(6, 4))
+    baseline_median: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    baseline_mad: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    volume_score: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    new_source_fraction: Mapped[Decimal | None] = mapped_column(Numeric(6, 4))
+    alert_id: Mapped[str | None] = mapped_column(ForeignKey("detection_alerts.id"))
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=_now())

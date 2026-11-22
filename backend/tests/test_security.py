@@ -275,7 +275,7 @@ def test_audit_log_and_events_are_append_only_for_runtime_role(db_env: dict[str,
         "DELETE FROM audit_logs",
         "UPDATE security_events SET event_type='x'",
         "DELETE FROM security_events",
-        "UPDATE detection_rules SET status='disabled'",
+        "DELETE FROM detection_rules",
     ):
         with eng.begin() as c:
             try:
@@ -283,4 +283,11 @@ def test_audit_log_and_events_are_append_only_for_runtime_role(db_env: dict[str,
                 raise AssertionError(f"runtime role was allowed: {stmt}")
             except ProgrammingError as exc:
                 assert "permission denied" in str(exc)
+    # Built-in rules are invisible to UPDATE through RLS, even with a tenant scope set.
+    with eng.begin() as c:
+        c.execute(text("SELECT set_config('aegis.tenant_id', 'tenant_demo', true)"))
+        changed = c.execute(
+            text("UPDATE detection_rules SET status='disabled' WHERE tenant_id IS NULL")
+        ).rowcount
+        assert changed == 0
     eng.dispose()

@@ -31,6 +31,15 @@ class Capability(StrEnum):
     FIXTURES_IMPORT = "fixtures:import"
     AGENTS_READ = "agents:read"
     AGENTS_MANAGE = "agents:manage"
+    RULES_WRITE = "rules:write"
+    SUPPRESSIONS_MANAGE = "suppressions:manage"
+    NETWORK_READ = "network:read"
+    AI_USE = "ai:use"
+    AI_AUDIT = "ai:audit"
+    RESPONSES_READ = "responses:read"
+    RESPONSES_PROPOSE = "responses:propose"
+    RESPONSES_APPROVE = "responses:approve"
+    RESPONSES_EXECUTE = "responses:execute"
 
 
 _READ = {
@@ -39,21 +48,54 @@ _READ = {
     Capability.RULES_READ,
     Capability.INCIDENTS_READ,
     Capability.AGENTS_READ,
+    Capability.NETWORK_READ,
 }
 
 # Capability matrix (docs/security/capability-matrix.md). Server-side source of truth.
 ROLE_CAPABILITIES: dict[str, frozenset[Capability]] = {
     "viewer": frozenset(_READ),
     "analyst": frozenset(
-        _READ | {Capability.INCIDENTS_UPDATE, Capability.EVENTS_INGEST, Capability.FIXTURES_IMPORT}
+        _READ
+        | {
+            Capability.INCIDENTS_UPDATE,
+            Capability.EVENTS_INGEST,
+            Capability.FIXTURES_IMPORT,
+            Capability.SUPPRESSIONS_MANAGE,
+            Capability.AI_USE,
+            Capability.RESPONSES_READ,
+        }
     ),
-    "detection_maintainer": frozenset(_READ),
-    "response_proposer": frozenset(_READ),
-    "response_approver": frozenset(_READ),
+    "detection_maintainer": frozenset(
+        _READ | {Capability.RULES_WRITE, Capability.SUPPRESSIONS_MANAGE, Capability.AI_USE}
+    ),
+    "response_proposer": frozenset(
+        _READ | {Capability.RESPONSES_READ, Capability.RESPONSES_PROPOSE, Capability.AI_USE}
+    ),
+    "response_approver": frozenset(
+        _READ
+        | {Capability.RESPONSES_READ, Capability.RESPONSES_APPROVE, Capability.RESPONSES_EXECUTE}
+    ),
     "tenant_admin": frozenset(
-        _READ | {Capability.AUDIT_READ, Capability.FIXTURES_IMPORT, Capability.AGENTS_MANAGE}
+        _READ
+        | {
+            Capability.AUDIT_READ,
+            Capability.FIXTURES_IMPORT,
+            Capability.AGENTS_MANAGE,
+            Capability.RULES_WRITE,
+            Capability.SUPPRESSIONS_MANAGE,
+            Capability.AI_USE,
+            Capability.AI_AUDIT,
+            Capability.RESPONSES_READ,
+        }
     ),
-    "auditor": frozenset({Capability.AUDIT_READ, Capability.INCIDENTS_READ}),
+    "auditor": frozenset(
+        {
+            Capability.AUDIT_READ,
+            Capability.INCIDENTS_READ,
+            Capability.AI_AUDIT,
+            Capability.RESPONSES_READ,
+        }
+    ),
 }
 
 

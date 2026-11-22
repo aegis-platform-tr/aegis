@@ -56,6 +56,9 @@ def alert_out(
         explanation=a.explanation,
         mitre=a.mitre,
         origin=a.origin,
+        suppressed=a.suppressed,
+        suppression_id=a.suppression_id,
+        evidence_quality=a.evidence_quality,
         incident_id=incident_id,
         event_ids=event_ids,
     )

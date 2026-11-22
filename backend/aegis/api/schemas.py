@@ -84,6 +84,9 @@ class AlertOut(BaseModel):
     explanation: str
     mitre: list[dict[str, str]]
     origin: str
+    suppressed: bool = False
+    suppression_id: str | None = None
+    evidence_quality: str = "direct"
     incident_id: str | None = None
     event_ids: list[str] | None = None
 
@@ -106,7 +109,7 @@ class IncidentOut(BaseModel):
 
 
 class TimelineEntry(BaseModel):
-    kind: Literal["event", "alert", "transition"]
+    kind: Literal["event", "alert", "transition", "note"]
     at: datetime
     ref_id: str
     summary: str
@@ -124,6 +127,18 @@ class IncidentPatchIn(BaseModel):
     status: Literal["new", "investigating", "contained", "resolved", "closed"]
     version: int = Field(ge=1, description="Current version; mismatches return 409")
     reason: str = Field(min_length=3, max_length=2000)
+
+
+class NoteIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["note", "containment_verification", "closure_reason"] = "note"
+    body: str = Field(min_length=1, max_length=10000)
+
+
+class AssignIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    assignee: str | None = Field(default=None, max_length=200)
+    version: int = Field(ge=1)
 
 
 class Page[T](BaseModel):

@@ -1,0 +1,57 @@
+{
+  "fixture_pack": "ids-correlation-demo",
+  "version": "1",
+  "origin": "synthetic",
+  "description": "A synthetic Suricata high-severity alert from the brute-force source (192.0.2.42) shortly after the SSH burst, and an unrelated Windows account lockout. Import after auth-bruteforce-demo: the IDS alert joins the existing incident; the lockout opens its own.",
+  "expected": {
+    "alerts": 2,
+    "joins_incident_of": "auth-bruteforce-demo source_ip:192.0.2.42"
+  },
+  "events": [
+    {
+      "schema_version": "1.0",
+      "event_category": "ids",
+      "event_type": "ids_alert",
+      "severity": "high",
+      "occurred_at": "2026-01-01T09:15:30Z",
+      "observed_at": "2026-01-01T09:15:31Z",
+      "source": {
+        "adapter": "suricata-eve",
+        "adapter_version": "1",
+        "native_id": "ids-demo-001"
+      },
+      "asset_id": "asset_demo_sensor01",
+      "source_ip": "192.0.2.42",
+      "destination_ip": "198.51.100.10",
+      "source_port": 51999,
+      "destination_port": 22,
+      "protocol": "tcp",
+      "attributes": {
+        "signature_id": 9000001,
+        "signature": "AEGIS-DEMO SSH scan followed by successful login (synthetic)",
+        "category": "Attempted Administrator Privilege Gain",
+        "sensor_action": "allowed"
+      },
+      "origin": "synthetic"
+    },
+    {
+      "schema_version": "1.0",
+      "event_category": "authentication",
+      "event_type": "account_lockout",
+      "occurred_at": "2026-01-01T09:16:00Z",
+      "observed_at": "2026-01-01T09:16:02Z",
+      "source": {
+        "adapter": "windows-security",
+        "adapter_version": "1",
+        "native_id": "win-demo-4740-001"
+      },
+      "asset_id": "asset_demo_dc01",
+      "principal": "svc-backup",
+      "attributes": {
+        "event_id": 4740,
+        "computer": "DC01.example.local"
+      },
+      "origin": "synthetic"
+    }
+  ]
+}

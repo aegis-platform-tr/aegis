@@ -216,4 +216,24 @@ def import_fixture(
     if not isinstance(events, list):
         raise ApiError(422, "invalid_fixture", "Fixture has no events list")
     # Producer is the pack, so any analyst in the tenant re-importing it is deduplicated.
-    return _ingest(request, principal, events, f"fixture:{name}", "fixture-import", settings)
+    # Large packs are imported in bounded chunks, each its own durable transaction.
+    totals = IngestOut(accepted=0, duplicate=0, rejected=0, results=[])
+    size = settings.max_batch_items
+    for offset in range(0, len(events), size):
+        part = _ingest(
+            request,
+            principal,
+            events[offset : offset + size],
+            f"fixture:{name}",
+            "fixture-import",
+            settings,
+        )
+        totals.accepted += part.accepted
+        totals.duplicate += part.duplicate
+        totals.rejected += part.rejected
+        totals.results += [
+            r.model_copy(update={"index": r.index + offset})
+            for r in part.results
+            if r.status == "rejected"
+        ]
+    return totals

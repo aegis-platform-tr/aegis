@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 
+from aegis import baselines
 from aegis.correlation import correlate_alert
 from aegis.db import session_scope, set_tenant
 from aegis.detection import evaluate_event
@@ -52,8 +53,10 @@ def process_one() -> bool | None:
             event = session.execute(
                 select(SecurityEvent).where(SecurityEvent.id == item.ref_id)
             ).scalar_one()
-            for alert_id in evaluate_event(session, event):
-                correlate_alert(session, alert_id)
+            outcomes = evaluate_event(session, event) + baselines.process_event(session, event)
+            for outcome in outcomes:
+                if not outcome.suppressed:
+                    correlate_alert(session, outcome.alert_id)
             item.status = "done"
             item.attempts += 1
         log.info("work item processed", extra={"work_item_id": claimed[0], "event_id": claimed[2]})

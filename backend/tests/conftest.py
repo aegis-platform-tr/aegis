@@ -126,16 +126,16 @@ def clean_data(db_env: dict[str, str]) -> Iterator[None]:
     from aegis.api.routes_auth import failures
 
     failures.reset()
-    owner = create_engine(db_env["AEGIS_MIGRATION_DATABASE_URL"])
+    owner = owner_engine(db_env)  # superuser: cleanup must bypass RLS
     with owner.begin() as c:
-        c.execute(
-            text(
-                "TRUNCATE agent_credentials, agents, enrollment_tokens, incident_transitions, "
-                "incident_alerts, incidents, alert_events, "
-                "detection_alerts, work_items, security_events, audit_logs, "
-                "revoked_tokens RESTART IDENTITY"
-            )
-        )
+        keep = {"tenants", "users", "detection_rules", "alembic_version"}
+        tables = [
+            r[0]
+            for r in c.execute(text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"))
+            if r[0] not in keep
+        ]
+        c.execute(text(f"TRUNCATE {', '.join(tables)} RESTART IDENTITY CASCADE"))
+        c.execute(text("DELETE FROM detection_rules WHERE tenant_id IS NOT NULL"))
     owner.dispose()
     yield
 

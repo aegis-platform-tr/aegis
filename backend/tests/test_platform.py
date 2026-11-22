@@ -52,7 +52,7 @@ def test_concurrent_migrations_apply_exactly_once(db_env: dict[str, str]) -> Non
         eng = create_engine(make_url(admin).set(database=dbname))
         with eng.connect() as c:
             assert c.execute(text("SELECT count(*) FROM alembic_version")).scalar_one() == 1
-            assert c.execute(text("SELECT count(*) FROM detection_rules")).scalar_one() == 1
+            assert c.execute(text("SELECT count(*) FROM detection_rules")).scalar_one() == 4
         eng.dispose()
     finally:
         _drop(admin, dbname)

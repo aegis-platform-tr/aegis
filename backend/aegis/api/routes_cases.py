@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
@@ -15,10 +13,12 @@ from aegis.api.errors import ApiError
 from aegis.api.pagination import DEFAULT_LIMIT, MAX_LIMIT, apply_keyset, encode_cursor
 from aegis.api.schemas import (
     AlertOut,
+    AssignIn,
     AuditOut,
     IncidentDetailOut,
     IncidentOut,
     IncidentPatchIn,
+    NoteIn,
     Page,
     TimelineEntry,
 )
@@ -27,11 +27,12 @@ from aegis.models import (
     AlertEvent,
     AuditLog,
     DetectionAlert,
-    DetectionRule,
     Incident,
     IncidentAlert,
+    IncidentNote,
     IncidentTransition,
     SecurityEvent,
+    User,
 )
 from aegis.security import Capability, Principal
 
@@ -246,7 +247,24 @@ def _detail(s: Session, inc: Incident) -> IncidentDetailOut:
                 times={"recorded_at": t.at},
             )
         )
-    order = {"event": 0, "alert": 1, "transition": 2}
+    notes = list(
+        s.scalars(
+            select(IncidentNote)
+            .where(IncidentNote.incident_id == inc.id)
+            .order_by(IncidentNote.at, IncidentNote.id)
+        ).all()
+    )
+    for n in notes:
+        timeline.append(
+            TimelineEntry(
+                kind="note",
+                at=n.at,
+                ref_id=f"note-{n.id}",
+                summary=f"[{n.kind}] {n.author}: {n.body}",
+                times={"recorded_at": n.at},
+            )
+        )
+    order = {"event": 0, "alert": 1, "transition": 2, "note": 3}
     timeline.sort(key=lambda x: (x.at, order[x.kind], x.ref_id))
 
     base = incident_out(inc, len(alerts))
@@ -318,31 +336,7 @@ def transition_incident(
         return _detail(s, _load_incident(s, principal.tenant_id, incident_id))
 
 
-# ---- Rules and audit ----------------------------------------------------------------------
-
-
-@router.get("/rules")
-def list_rules(
-    _: Principal = Depends(require(Capability.RULES_READ)),
-    s: Session = Depends(tenant_session),
-) -> list[dict[str, Any]]:
-    rows = s.scalars(select(DetectionRule).order_by(DetectionRule.id, DetectionRule.revision)).all()
-    return [
-        {
-            "rule_id": r.id,
-            "revision": r.revision,
-            "name": r.name,
-            "status": r.status,
-            "severity": r.severity,
-            "confidence": float(r.confidence),
-            "description": r.description,
-            "definition": r.definition,
-            "mitre": r.mitre,
-            "author": r.author,
-            "created_at": r.created_at,
-        }
-        for r in rows
-    ]
+# ---- Audit ----------------------------------------------------------------------
 
 
 @router.get("/audit", response_model=Page[AuditOut])
@@ -372,3 +366,92 @@ def list_audit(
         next_cursor=None,
         total=total,
     )
+
+
+@router.post("/incidents/{incident_id}/notes", response_model=IncidentDetailOut)
+def add_note(
+    incident_id: str,
+    body: NoteIn,
+    request: Request,
+    principal: Principal = Depends(require(Capability.INCIDENTS_UPDATE)),
+) -> IncidentDetailOut:
+    with session_scope(tenant_id=principal.tenant_id) as s:
+        inc = _load_incident(s, principal.tenant_id, incident_id)
+        s.add(
+            IncidentNote(
+                tenant_id=principal.tenant_id,
+                incident_id=inc.id,
+                kind=body.kind,
+                author=principal.username or principal.subject,
+                body=body.body,
+            )
+        )
+        audit.record(
+            s,
+            tenant_id=principal.tenant_id,
+            actor=principal.subject,
+            action="incident.note",
+            outcome="success",
+            target_type="incident",
+            target_id=inc.id,
+            request_id=request.state.request_id,
+            details={"kind": body.kind},
+        )
+        s.flush()
+        return _detail(s, inc)
+
+
+@router.post("/incidents/{incident_id}/assign", response_model=IncidentDetailOut)
+def assign(
+    incident_id: str,
+    body: AssignIn,
+    request: Request,
+    principal: Principal = Depends(require(Capability.INCIDENTS_UPDATE)),
+) -> IncidentDetailOut:
+    with session_scope(tenant_id=principal.tenant_id) as s:
+        inc = _load_incident(s, principal.tenant_id, incident_id)
+        if body.assignee is not None:
+            ok = s.execute(
+                select(User.id).where(
+                    User.username == body.assignee,
+                    User.tenant_id == principal.tenant_id,
+                    User.is_active.is_(True),
+                )
+            ).first()
+            if not ok:
+                raise ApiError(
+                    422, "unknown_assignee", "Assignee is not an active user in this tenant"
+                )
+        res = s.execute(
+            update(Incident)
+            .where(Incident.id == inc.id, Incident.version == body.version)
+            .values(assigned_to=body.assignee, version=Incident.version + 1, updated_at=func.now())
+            .returning(Incident.version)
+        ).scalar_one_or_none()
+        if res is None:
+            raise ApiError(
+                409, "version_conflict", "Incident was modified by someone else; reload and retry"
+            )
+        s.add(
+            IncidentNote(
+                tenant_id=principal.tenant_id,
+                incident_id=inc.id,
+                kind="assignment",
+                author=principal.username or principal.subject,
+                body=f"assigned to {body.assignee or 'nobody'}",
+            )
+        )
+        audit.record(
+            s,
+            tenant_id=principal.tenant_id,
+            actor=principal.subject,
+            action="incident.assign",
+            outcome="success",
+            target_type="incident",
+            target_id=inc.id,
+            request_id=request.state.request_id,
+            details={"assignee": body.assignee},
+        )
+        s.flush()
+        s.expire_all()
+        return _detail(s, _load_incident(s, principal.tenant_id, incident_id))

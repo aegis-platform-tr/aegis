@@ -24,6 +24,8 @@ SYSTEM_ACTOR = "system:correlation"
 
 
 def correlation_key(alert: DetectionAlert) -> str:
+    if "service_key" in alert.group_key:
+        return f"service:{alert.group_key['service_key']}"
     for field_name in ("source_ip", "asset_id", "principal"):
         if field_name in alert.group_key:
             return f"{field_name}:{alert.group_key[field_name]}"

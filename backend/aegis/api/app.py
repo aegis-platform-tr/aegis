@@ -16,7 +16,14 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from aegis import __version__
-from aegis.api import errors, routes_agents, routes_auth, routes_cases, routes_events
+from aegis.api import (
+    errors,
+    routes_agents,
+    routes_auth,
+    routes_cases,
+    routes_events,
+    routes_rules,
+)
 from aegis.config import get_settings
 from aegis.db import session_scope
 from aegis.logging_setup import configure_logging
@@ -145,4 +152,5 @@ def create_app() -> FastAPI:
     app.include_router(routes_events.router)
     app.include_router(routes_cases.router)
     app.include_router(routes_agents.router)
+    app.include_router(routes_rules.router)
     return app
